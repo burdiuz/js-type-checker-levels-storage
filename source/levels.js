@@ -1,8 +1,8 @@
 import hasOwn from '@actualwave/has-own';
 
-export const REPORT_NEVER = 2;
-export const REPORT_ONCE = 1;
-export const REPORT_ALL = 0;
+export const REPORT_NEVER = 'never';
+export const REPORT_ONCE = 'once';
+export const REPORT_ALL = 'all';
 
 const REPORT_KEY = Symbol('type-checkers:report-level');
 const PROPERTY_REPORT_KEY = Symbol('type-checkers:property-report-level');
@@ -68,5 +68,5 @@ export const getReportingLevel = (target, key) => {
     level = getTargetReportingLevel(target.constructor, key);
   }
 
-  return validateReportingLevel(level);
+  return level || getGlobalReportingLevel();
 };

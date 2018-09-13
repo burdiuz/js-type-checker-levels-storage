@@ -1,4 +1,4 @@
-import { REPORT_NEVER, REPORT_ONCE, REPORT_ALL } from './levels';
+import { REPORT_NEVER, REPORT_ONCE, REPORT_ALL, getReportingLevel } from './levels';
 
 export const createTypesStorage = () => new Map();
 
@@ -57,3 +57,6 @@ export const storeTypeInformation = (storage, key, types, level) => {
       break;
   }
 };
+
+export const storeTypeInformationFor = (storage, target, key, types) =>
+  storeTypeInformation(storage, key, types, getReportingLevel(target, key));

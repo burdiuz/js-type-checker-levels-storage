@@ -13,6 +13,7 @@ import {
   getTypeInformation,
   hasTypeInformation,
   storeTypeInformation,
+  storeTypeInformationFor,
 } from './storage';
 
 export {
@@ -23,6 +24,7 @@ export {
   getTypeInformation,
   hasTypeInformation,
   storeTypeInformation,
+  storeTypeInformationFor,
   getGlobalReportingLevel,
   setGlobalReportingLevel,
   getReportingLevel,

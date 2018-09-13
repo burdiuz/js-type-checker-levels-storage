@@ -27,9 +27,9 @@ exports.default = hasOwn;
 var hasOwn = unwrapExports(hasOwn_1);
 var hasOwn_2 = hasOwn_1.hasOwn;
 
-const REPORT_NEVER = 2;
-const REPORT_ONCE = 1;
-const REPORT_ALL = 0;
+const REPORT_NEVER = 'never';
+const REPORT_ONCE = 'once';
+const REPORT_ALL = 'all';
 
 const REPORT_KEY = Symbol('type-checkers:report-level');
 const PROPERTY_REPORT_KEY = Symbol('type-checkers:property-report-level');
@@ -92,7 +92,7 @@ const getReportingLevel = (target, key) => {
     level = getTargetReportingLevel(target.constructor, key);
   }
 
-  return validateReportingLevel(level);
+  return level || getGlobalReportingLevel();
 };
 
 const createTypesStorage = () => new Map();
@@ -153,6 +153,8 @@ const storeTypeInformation = (storage, key, types, level) => {
   }
 };
 
+const storeTypeInformationFor = (storage, target, key, types) => storeTypeInformation(storage, key, types, getReportingLevel(target, key));
+
 exports.REPORT_ALL = REPORT_ALL;
 exports.REPORT_NEVER = REPORT_NEVER;
 exports.REPORT_ONCE = REPORT_ONCE;
@@ -160,6 +162,7 @@ exports.createTypesStorage = createTypesStorage;
 exports.getTypeInformation = getTypeInformation;
 exports.hasTypeInformation = hasTypeInformation;
 exports.storeTypeInformation = storeTypeInformation;
+exports.storeTypeInformationFor = storeTypeInformationFor;
 exports.getGlobalReportingLevel = getGlobalReportingLevel;
 exports.setGlobalReportingLevel = setGlobalReportingLevel;
 exports.getReportingLevel = getReportingLevel;
