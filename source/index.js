@@ -8,13 +8,14 @@ import {
   setReportingLevel,
 } from './levels';
 
-import {createTypesStorage} from './storage';
+import { createTypesStorage, defaultMergeStrategy } from './storage';
 
 export {
   REPORT_ALL,
   REPORT_NEVER,
   REPORT_ONCE,
   createTypesStorage,
+  defaultMergeStrategy,
   getGlobalReportingLevel,
   setGlobalReportingLevel,
   getReportingLevel,

@@ -12,11 +12,7 @@ import {
  * @param {Set} target
  * @param {Set} source
  */
-const defaultMergeStrategy = (key, target, source) => {
-  if (!source || !target) {
-    return source || target;
-  }
-
+export const defaultMergeStrategy = (key, target, source) => {
   source.forEach((type) => {
     if (!target.has(type)) {
       target.add(type);
@@ -26,21 +22,21 @@ const defaultMergeStrategy = (key, target, source) => {
   return target;
 };
 
-class TypeInfoStorage {
+class MapOfSetsStorage {
   constructor() {
     this.storage = new Map();
   }
 
   has(key) {
-    const info = this.storage.get(key);
+    const values = this.storage.get(key);
 
-    return info && info.size;
+    return values && values.size;
   }
 
-  hasType(key, type) {
-    const info = this.storage.get(key);
+  hasValue(key, value) {
+    const values = this.storage.get(key);
 
-    return info && info.has(type);
+    return values && values.has(value);
   }
 
   /**
@@ -49,13 +45,70 @@ class TypeInfoStorage {
    * @param {Function} callback
    */
   get(key, callback) {
-    const info = this.storage.get(key);
+    const values = this.storage.get(key);
 
-    if (info) {
-      info.forEach((type) => callback(key, type));
+    if (values) {
+      values.forEach((type) => callback(type, key, this));
     }
   }
 
+  /**
+   * Add to type information for specified key.
+   * @param {*} key
+   * @param {*} value
+   * @param {Number} level
+   */
+  add(key, value) {
+    if (!value) return;
+    const values = this.storage.get(key);
+
+    if (values) {
+      values.add(value);
+    } else {
+      this.storage.set(key, new Set([value]));
+    }
+  }
+
+  /**
+   * Replace values information for specific key
+   * @param {*} key
+   * @param {Set} types
+   * @param {Number} level
+   */
+  set(key, values) {
+    if (!values || values.size === 0) {
+      this.remove(key);
+      return;
+    }
+
+    this.storage.set(key, new Set(values));
+  }
+
+  remove(key) {
+    this.storage.delete(key);
+  }
+
+  removeValue(key, value) {
+    const values = this.storage.get(key);
+
+    if (values) {
+      values.delete(value);
+
+      if (!values.size) {
+        this.remove(key);
+      }
+    }
+  }
+
+  clone() {
+    const target = new MapOfSetsStorage();
+    this.storage.forEach((values, key) => target.set(key, new Set(values)));
+
+    return target;
+  }
+}
+
+class TypeInfoStorage extends MapOfSetsStorage {
   /**
    * Add to type information for specified key.
    * @param {*} key
@@ -67,20 +120,10 @@ class TypeInfoStorage {
 
     switch (level) {
       case REPORT_NEVER:
-        this.storage.delete(key);
+        this.remove(key);
         break;
       case REPORT_ONCE:
-        {
-          const types = this.storage.get(key);
-
-          if (types) {
-            if (!types.has(type)) {
-              types.add(type);
-            }
-          } else {
-            this.storage.set(key, new Set([type]));
-          }
-        }
+        super.add(key, type);
         break;
       case REPORT_ALL:
       default:
@@ -107,11 +150,11 @@ class TypeInfoStorage {
    */
   set(key, types, level) {
     if (!types || types.size === 0 || level === REPORT_NEVER) {
-      this.storage.delete(key);
+      this.remove(key);
       return;
     }
 
-    this.storage.set(key, types);
+    super.set(key, types);
   }
 
   /**
