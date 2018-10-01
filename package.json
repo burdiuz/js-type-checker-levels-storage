@@ -24,6 +24,9 @@
   "dependencies": {
     "@actualwave/has-own": "0.0.1"
   },
+  "peerDependencies": {
+    "@actualwave/type-checkers": "^0.1.1"
+  },
   "devDependencies": {
     "babel-core": "^6.26.3",
     "babel-eslint": "^8.2.6",

@@ -2,33 +2,21 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-function unwrapExports (x) {
-	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
-}
+function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-function createCommonjsModule(fn, module) {
-	return module = { exports: {} }, fn(module, module.exports), module.exports;
-}
+var hasOwn = _interopDefault(require('@actualwave/has-own'));
 
-var hasOwn_1 = createCommonjsModule(function (module, exports) {
-
-Object.defineProperty(exports, '__esModule', { value: true });
-
-const hasOwn = (
-  (has) =>
-  (target, property) =>
-  Boolean(target && has.call(target, property))
-)(Object.prototype.hasOwnProperty);
-
-exports.hasOwn = hasOwn;
-exports.default = hasOwn;
-});
-
-var hasOwn = unwrapExports(hasOwn_1);
-var hasOwn_2 = hasOwn_1.hasOwn;
-
+/**
+ * Do not check or report type inconsistency
+ */
 const REPORT_NEVER = 'never';
+/**
+ * Report type inconsistency once, i.e. record all types and report new
+ */
 const REPORT_ONCE = 'once';
+/**
+ * Report whenever type is inconsistent with initial
+ */
 const REPORT_ALL = 'all';
 
 const REPORT_KEY = Symbol('type-checkers:report-level');
@@ -95,74 +83,166 @@ const getReportingLevel = (target, key) => {
   return level || getGlobalReportingLevel();
 };
 
-const createTypesStorage = () => new Map();
-
 /**
  *
- * @param {Map} storage
+ * @param {any} key
+ * @param {Set} target
+ * @param {Set} source
  */
-const hasTypeInformation = (storage, key) => {
-  const info = storage.get(key);
-
-  return info && info.length;
-};
-
-/**
- *
- * @param {Map} storage
- * @param {*} key
- * @param {Function} callback
- */
-const getTypeInformation = (storage, key, callback) => {
-  const info = storage.get(key);
-
-  if (info) {
-    info.forEach(types => callback(key, types));
+const defaultMergeStrategy = (key, target, source) => {
+  if (!source || !target) {
+    return source || target;
   }
+
+  source.forEach(type => {
+    if (!target.has(type)) {
+      target.add(type);
+    }
+  });
+
+  return target;
 };
 
-/**
- *
- * @param {Map} storage
- * @param {*} key
- * @param {*} types
- * @param {Number} level
- */
-const storeTypeInformation = (storage, key, types, level) => {
-  if (!types) return;
+class TypeInfoStorage {
+  constructor() {
+    this.storage = new Map();
+  }
 
-  switch (level) {
-    case REPORT_NEVER:
-      // storage.delete(key); // do we need this?
-      break;
-    case REPORT_ONCE:
-      storage.delete(key);
-      storage.set(key, [types]);
-      break;
-    case REPORT_ALL:
-    default:
-      {
-        const info = storage.get(key);
-        if (info) {
-          info.push(types);
-        } else {
-          storage.set(key, [types]);
+  has(key) {
+    const info = this.storage.get(key);
+
+    return info && info.size;
+  }
+
+  hasType(key, type) {
+    const info = this.storage.get(key);
+
+    return info && info.has(type);
+  }
+
+  /**
+   *
+   * @param {*} key
+   * @param {Function} callback
+   */
+  get(key, callback) {
+    const info = this.storage.get(key);
+
+    if (info) {
+      info.forEach(type => callback(key, type));
+    }
+  }
+
+  /**
+   * Add to type information for specified key.
+   * @param {*} key
+   * @param {*} type
+   * @param {Number} level
+   */
+  add(key, type, level) {
+    if (!type) return;
+
+    switch (level) {
+      case REPORT_NEVER:
+        this.storage.delete(key);
+        break;
+      case REPORT_ONCE:
+        {
+          const types = this.storage.get(key);
+
+          if (types) {
+            if (!types.has(type)) {
+              types.add(type);
+            }
+          } else {
+            this.storage.set(key, new Set([type]));
+          }
         }
-      }
-      break;
-  }
-};
+        break;
+      case REPORT_ALL:
+      default:
+        {
+          const types = this.storage.get(key);
 
-const storeTypeInformationFor = (storage, target, key, types) => storeTypeInformation(storage, key, types, getReportingLevel(target, key));
+          if (!types || !types.size) {
+            this.storage.set(key, new Set([type]));
+          }
+        }
+        break;
+    }
+  }
+
+  addFor(key, type, target) {
+    this.add(key, type, getReportingLevel(target, key));
+  }
+
+  /**
+   * Replace types information for specific key
+   * @param {*} key
+   * @param {Set} types
+   * @param {Number} level
+   */
+  set(key, types, level) {
+    if (!types || types.size === 0 || level === REPORT_NEVER) {
+      this.storage.delete(key);
+      return;
+    }
+
+    this.storage.set(key, types);
+  }
+
+  /**
+   *
+   * @param {*} key
+   * @param {Set} types
+   * @param {Object} target
+   */
+  setFor(key, types, target) {
+    return this.set(key, types, getReportingLevel(target, key));
+  }
+
+  clone() {
+    const target = new TypeInfoStorage();
+    this.storage.forEach((types, key) => target.set(key, new Set(types)));
+
+    return target;
+  }
+
+  /**
+   * Copy types from current storage to storage passed as first argument.
+   * @param {Map} storage
+   * @param {Object} [target]
+   * @param {Function} [mergeStrategy]
+   */
+  copyTo(storage, target, mergeStrategy = defaultMergeStrategy) {
+    this.storage.forEach((types, key) => {
+      const level = validateReportingLevel(target && getReportingLevel(target, key));
+
+      switch (level) {
+        case REPORT_ALL:
+        case REPORT_ONCE:
+          if (storage.has(key)) {
+            storage.set(key, mergeStrategy(key, storage.get(key), types, level), level);
+          } else {
+            storage.set(key, new Set(types));
+          }
+          break;
+        case REPORT_NEVER:
+        default:
+          break;
+      }
+    });
+
+    return storage;
+  }
+}
+
+const createTypesStorage = () => new TypeInfoStorage();
 
 exports.REPORT_ALL = REPORT_ALL;
 exports.REPORT_NEVER = REPORT_NEVER;
 exports.REPORT_ONCE = REPORT_ONCE;
 exports.createTypesStorage = createTypesStorage;
-exports.getTypeInformation = getTypeInformation;
-exports.hasTypeInformation = hasTypeInformation;
-exports.storeTypeInformation = storeTypeInformation;
-exports.storeTypeInformationFor = storeTypeInformationFor;
 exports.getGlobalReportingLevel = getGlobalReportingLevel;
 exports.setGlobalReportingLevel = setGlobalReportingLevel;
 exports.getReportingLevel = getReportingLevel;

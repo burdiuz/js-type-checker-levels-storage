@@ -1,7 +1,16 @@
 import hasOwn from '@actualwave/has-own';
 
+/**
+ * Do not check or report type inconsistency
+ */
 export const REPORT_NEVER = 'never';
+/**
+ * Report type inconsistency once, i.e. record all types and report new
+ */
 export const REPORT_ONCE = 'once';
+/**
+ * Report whenever type is inconsistent with initial
+ */
 export const REPORT_ALL = 'all';
 
 const REPORT_KEY = Symbol('type-checkers:report-level');
@@ -9,7 +18,7 @@ const PROPERTY_REPORT_KEY = Symbol('type-checkers:property-report-level');
 
 let globalReportingLevel = REPORT_ALL;
 
-const validateReportingLevel = (level) => {
+export const validateReportingLevel = (level) => {
   switch (level) {
     case REPORT_NEVER:
     case REPORT_ONCE:

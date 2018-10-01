@@ -8,23 +8,13 @@ import {
   setReportingLevel,
 } from './levels';
 
-import {
-  createTypesStorage,
-  getTypeInformation,
-  hasTypeInformation,
-  storeTypeInformation,
-  storeTypeInformationFor,
-} from './storage';
+import {createTypesStorage} from './storage';
 
 export {
   REPORT_ALL,
   REPORT_NEVER,
   REPORT_ONCE,
   createTypesStorage,
-  getTypeInformation,
-  hasTypeInformation,
-  storeTypeInformation,
-  storeTypeInformationFor,
   getGlobalReportingLevel,
   setGlobalReportingLevel,
   getReportingLevel,
