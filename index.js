@@ -123,6 +123,12 @@ class MapOfSets {
     return this.storage.get(key);
   }
 
+  list(key) {
+    const values = this.storage.get(key);
+
+    return values ? Array.from(values) : [];
+  }
+
   /**
    * @param {Function} callback
    */
