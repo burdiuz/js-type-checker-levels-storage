@@ -99,7 +99,7 @@ const defaultMergeStrategy = (key, target, source) => {
   return target;
 };
 
-class MapOfSetsStorage {
+class MapOfSets {
   constructor() {
     this.storage = new Map();
   }
@@ -117,15 +117,28 @@ class MapOfSetsStorage {
   }
 
   /**
-   *
+   * @param {*} key
+   */
+  get(key) {
+    return this.storage.get(key);
+  }
+
+  /**
+   * @param {Function} callback
+   */
+  forEach(callback) {
+    this.storage.forEach((values, key) => values.forEach(value => callback(value, key, this)));
+  }
+
+  /**
    * @param {*} key
    * @param {Function} callback
    */
-  get(key, callback) {
+  eachValue(key, callback) {
     const values = this.storage.get(key);
 
     if (values) {
-      values.forEach(type => callback(type, key, this));
+      values.forEach(value => callback(value, key, this));
     }
   }
 
@@ -178,14 +191,14 @@ class MapOfSetsStorage {
   }
 
   clone() {
-    const target = new MapOfSetsStorage();
+    const target = new MapOfSets();
     this.storage.forEach((values, key) => target.set(key, new Set(values)));
 
     return target;
   }
 }
 
-class TypeInfoStorage extends MapOfSetsStorage {
+class TypeInfoStorage extends MapOfSets {
   /**
    * Add to type information for specified key.
    * @param {*} key
