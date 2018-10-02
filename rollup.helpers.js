@@ -42,7 +42,7 @@ export const baseConfig = {
     },
   ],
   plugins,
-  external: ['@actualwave/has-own'],
+  external: ['@actualwave/has-own', '@actualwave/map-of-sets'],
 };
 
 export const minConfig = {

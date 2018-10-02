@@ -1,3 +1,5 @@
+import MapOfSets from '@actualwave/map-of-sets';
+
 import {
   REPORT_NEVER,
   REPORT_ONCE,
@@ -21,111 +23,6 @@ export const defaultMergeStrategy = (key, target, source) => {
 
   return target;
 };
-
-class MapOfSets {
-  constructor() {
-    this.storage = new Map();
-  }
-
-  has(key) {
-    const values = this.storage.get(key);
-
-    return values && values.size;
-  }
-
-  hasValue(key, value) {
-    const values = this.storage.get(key);
-
-    return values && values.has(value);
-  }
-
-  /**
-   * @param {*} key
-   */
-  get(key) {
-    return this.storage.get(key);
-  }
-
-  list(key) {
-    const values = this.storage.get(key);
-
-    return values ? Array.from(values) : [];
-  }
-
-  /**
-   * @param {Function} callback
-   */
-  forEach(callback) {
-    this.storage.forEach((values, key) => values.forEach((value) => callback(value, key, this)));
-  }
-
-  /**
-   * @param {*} key
-   * @param {Function} callback
-   */
-  eachValue(key, callback) {
-    const values = this.storage.get(key);
-
-    if (values) {
-      values.forEach((value) => callback(value, key, this));
-    }
-  }
-
-  /**
-   * Add to type information for specified key.
-   * @param {*} key
-   * @param {*} value
-   * @param {Number} level
-   */
-  add(key, value) {
-    if (!value) return;
-    const values = this.storage.get(key);
-
-    if (values) {
-      values.add(value);
-    } else {
-      this.storage.set(key, new Set([value]));
-    }
-  }
-
-  /**
-   * Replace values information for specific key
-   * @param {*} key
-   * @param {Set} types
-   * @param {Number} level
-   */
-  set(key, values) {
-    if (!values || values.size === 0) {
-      this.remove(key);
-      return;
-    }
-
-    this.storage.set(key, new Set(values));
-  }
-
-  remove(key) {
-    this.storage.delete(key);
-  }
-
-  removeValue(key, value) {
-    const values = this.storage.get(key);
-
-    if (values) {
-      values.delete(value);
-
-      if (!values.size) {
-        this.remove(key);
-      }
-    }
-  }
-
-  clone() {
-    const target = new MapOfSets();
-    this.storage.forEach((values, key) => target.set(key, new Set(values)));
-
-    return target;
-  }
-}
 
 class TypeInfoStorage extends MapOfSets {
   /**
