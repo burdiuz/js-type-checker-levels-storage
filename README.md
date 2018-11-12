@@ -1,5 +1,5 @@
-# Type Storage Levels for Type Checkers
-Part of Type Checkers library, basically its a [Map of Sets](https://github.com/burdiuz/js-map-of-sets) made to store type information. It stores list of all types applied to property and can return the list or check if type is in list.
+# Type Checker Levels Storage
+Part of [Primitive Type Checker](https://github.com/burdiuz/js-primitive-type-checker), basically its a [Map of Sets](https://github.com/burdiuz/js-map-of-sets) made to store type information. It stores list of all types applied to property and can return the list or check if type is in list.
 
 
 ## Installation
@@ -25,7 +25,7 @@ const storage = createTypesStorage();
 storage.add('myNumProp', REPORT_ONCE, 'number');
 storage.add('myObjProp', REPORT_ONCE, Object);
 ```
-> For Type Checkers its instantiated automatically for each wrapped object, so no need to create instances manually.
+> For Primitive Type Checker its instantiated automatically for each wrapped object, so no need to create instances manually.
 
 To merge storages, `copyTo()` function is used, developer may use optional third argument to pass custom merge strategy. Its used for merging Sets of properties that have type information in each storage. Default merge strategy simply combines sets.
 ```javascript
